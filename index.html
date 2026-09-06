@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel — PipocaFlix</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="assets/admin.css">
+</head>
+<body>
+
+<!-- ═══ LOGIN GATE ═══ -->
+<div id="loginGate">
+  <div class="login-box">
+    <div class="logo-mark">🍿 Pipoca<span>Flix</span></div>
+    <span class="eyebrow">Painel administrativo</span>
+    <h1>Acesso restrito</h1>
+    <p>Entre com a conta Google autorizada pra ver os números do site, buscar no TMDB e acompanhar assinantes.</p>
+    <button id="btnLogin" class="btn-google">
+      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.2l6.7-6.7C35.7 2.5 30.2 0 24 0 14.7 0 6.7 5.4 2.9 13.3l7.8 6C12.4 13 17.8 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8C43.8 37.5 46.5 31.4 46.5 24.5z"/><path fill="#FBBC05" d="M10.7 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.7l-7.8-6A23.8 23.8 0 0 0 0 24c0 3.9.9 7.5 2.5 10.8l8.2-6.1z"/><path fill="#34A853" d="M24 48c6.2 0 11.4-2 15.2-5.5l-7.5-5.8c-2 1.4-4.6 2.2-7.7 2.2-6.2 0-11.5-4.2-13.4-9.9l-8.2 6.1C6.6 42.6 14.7 48 24 48z"/></svg>
+      Entrar com Google
+    </button>
+    <p id="loginMsg"></p>
+  </div>
+</div>
+
+<!-- ═══ APP ═══ -->
+<div id="app">
+  <div class="mobile-topbar">
+    <div class="sidebar-logo">🍿 Pipoca<span style="color:var(--red)">Flix</span></div>
+    <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+  </div>
+  <nav class="mobile-nav" id="mobileNav"></nav>
+
+  <aside class="sidebar">
+    <div class="sidebar-logo">🍿 Pipoca<span style="color:var(--red)">Flix</span></div>
+    <div class="sidebar-tag">Painel administrativo</div>
+    <div id="sidebarNav"></div>
+    <div class="sidebar-footer">
+      <div class="sidebar-user" id="sidebarUser"></div>
+      <button class="btn-logout" id="btnLogout">Sair</button>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <!-- DASHBOARD -->
+    <section class="tab-panel active" id="tab-dashboard">
+      <div class="main-header">
+        <div><h1>Dashboard</h1><p>Visão geral do catálogo</p></div>
+        <button class="btn-refresh" id="btnRefreshDash"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 2v6h-6M3 22v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L21 8M3 16l2.64 2.36A9 9 0 0 0 20.49 15"/></svg>Atualizar</button>
+      </div>
+      <div class="stat-grid" id="statGrid"></div>
+      <div class="panel-card">
+        <h2>Categorias mais fortes</h2>
+        <p class="panel-sub">Quantos títulos (filmes + séries) em cada gênero</p>
+        <div class="bar-list" id="catBarList"><div class="state-msg"><div class="spinner"></div>Carregando catálogo...</div></div>
+      </div>
+      <div class="panel-card">
+        <h2>Áudio</h2>
+        <p class="panel-sub">Dublado vs. legendado no catálogo</p>
+        <div class="bar-list" id="audioBarList"></div>
+      </div>
+      <div class="panel-card">
+        <h2>Itens pra revisar</h2>
+        <p class="panel-sub">Títulos sem link de player, sem capa, ou séries sem episódio encontrado</p>
+        <div class="issue-list" id="issueList"></div>
+      </div>
+    </section>
+
+    <!-- TMDB -->
+    <section class="tab-panel" id="tab-tmdb">
+      <div class="main-header"><div><h1>Buscar no TMDB</h1><p>Veja se um título já está no catálogo antes de adicionar</p></div></div>
+      <div class="search-row">
+        <input type="text" id="tmdbInput" placeholder="Nome do filme ou série...">
+        <button id="tmdbBtn">Buscar</button>
+      </div>
+      <div class="tmdb-grid" id="tmdbGrid"><p class="empty-hint">Digite um nome acima e busque.</p></div>
+    </section>
+
+    <!-- ASSINANTES -->
+    <section class="tab-panel" id="tab-assinantes">
+      <div class="main-header">
+        <div><h1>Assinantes</h1><p>Quem tem VIP ativo, por plano e validade</p></div>
+        <button class="btn-refresh" id="btnRefreshVip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 2v6h-6M3 22v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L21 8M3 16l2.64 2.36A9 9 0 0 0 20.49 15"/></svg>Atualizar</button>
+      </div>
+      <div class="stat-grid" id="vipStatGrid"></div>
+      <div class="panel-card">
+        <div class="filter-row"><input type="text" id="vipFilter" placeholder="Filtrar por e-mail..."></div>
+        <div class="table-wrap"><table class="data-table" id="vipTable"></table></div>
+      </div>
+    </section>
+
+    <!-- COMENTÁRIOS -->
+    <section class="tab-panel" id="tab-comentarios">
+      <div class="main-header">
+        <div><h1>Comentários recentes</h1><p>Últimos comentários feitos no site inteiro</p></div>
+        <button class="btn-refresh" id="btnRefreshComments"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 2v6h-6M3 22v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L21 8M3 16l2.64 2.36A9 9 0 0 0 20.49 15"/></svg>Atualizar</button>
+      </div>
+      <div class="panel-card" id="commentsWrap"></div>
+    </section>
+
+    <!-- CATÁLOGO -->
+    <section class="tab-panel" id="tab-catalogo">
+      <div class="main-header"><div><h1>Catálogo</h1><p>Todos os filmes e séries, direto da planilha</p></div></div>
+      <div class="panel-card">
+        <div class="filter-row"><input type="text" id="catalogoFilter" placeholder="Filtrar por nome..."></div>
+        <div class="table-wrap"><table class="data-table" id="catalogoTable"></table></div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script src="assets/admin-data.js"></script>
+<script type="module" src="assets/admin-app.js"></script>
+</body>
+</html>
