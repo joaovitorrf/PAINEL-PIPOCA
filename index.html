@@ -64,9 +64,14 @@
         <div class="bar-list" id="audioBarList"></div>
       </div>
       <div class="panel-card">
-        <h2>Itens pra revisar</h2>
-        <p class="panel-sub">Títulos sem link de player, sem capa, ou séries sem episódio encontrado</p>
-        <div class="issue-list" id="issueList"></div>
+        <h2>Últimos usuários</h2>
+        <p class="panel-sub">Quem entrou mais recentemente no site</p>
+        <div id="dashUsersPeek"><p class="empty-hint">—</p></div>
+      </div>
+      <div class="panel-card">
+        <h2>Reportes em aberto</h2>
+        <p class="panel-sub">Últimos problemas reportados por usuários</p>
+        <div id="dashReportsPeek"><p class="empty-hint">—</p></div>
       </div>
     </section>
 
@@ -78,6 +83,21 @@
         <button id="tmdbBtn">Buscar</button>
       </div>
       <div class="tmdb-grid" id="tmdbGrid"><p class="empty-hint">Digite um nome acima e busque.</p></div>
+    </section>
+
+    <!-- REVISÃO -->
+    <section class="tab-panel" id="tab-revisao">
+      <div class="main-header">
+        <div><h1>Itens pra revisar</h1><p>Problemas específicos encontrados no catálogo</p></div>
+        <button class="btn-refresh" id="btnRefreshRevisao"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 2v6h-6M3 22v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L21 8M3 16l2.64 2.36A9 9 0 0 0 20.49 15"/></svg>Atualizar</button>
+      </div>
+      <div class="stat-grid" id="revisaoStatGrid"></div>
+      <div class="panel-card">
+        <div class="chip-row" id="revisaoTipoChips"></div>
+        <div class="chip-row" id="revisaoSevChips"></div>
+        <div class="filter-row"><input type="text" id="revisaoFilter" placeholder="Filtrar por nome..."></div>
+        <div id="revisaoList"><div class="state-msg"><div class="spinner"></div>Carregando...</div></div>
+      </div>
     </section>
 
     <!-- ASSINANTES -->
@@ -93,6 +113,29 @@
       </div>
     </section>
 
+    <!-- USUÁRIOS -->
+    <section class="tab-panel" id="tab-usuarios">
+      <div class="main-header">
+        <div><h1>Usuários</h1><p>Todo mundo que já entrou no site com o Google</p></div>
+        <button class="btn-refresh" id="btnRefreshUsuarios"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 2v6h-6M3 22v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L21 8M3 16l2.64 2.36A9 9 0 0 0 20.49 15"/></svg>Atualizar</button>
+      </div>
+      <div class="stat-grid" id="usuariosStatGrid"></div>
+      <div class="panel-card">
+        <div class="filter-row"><input type="text" id="usuariosFilter" placeholder="Filtrar por nome ou e-mail..."></div>
+        <div class="table-wrap"><table class="data-table" id="usuariosTable"></table></div>
+      </div>
+    </section>
+
+    <!-- REPORTES -->
+    <section class="tab-panel" id="tab-reportes">
+      <div class="main-header">
+        <div><h1>Reportes</h1><p>Problemas que os usuários reportaram nos títulos</p></div>
+        <button class="btn-refresh" id="btnRefreshReportes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 2v6h-6M3 22v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L21 8M3 16l2.64 2.36A9 9 0 0 0 20.49 15"/></svg>Atualizar</button>
+      </div>
+      <div class="chip-row" id="reportesStatusChips"></div>
+      <div class="panel-card" id="reportesWrap"></div>
+    </section>
+
     <!-- COMENTÁRIOS -->
     <section class="tab-panel" id="tab-comentarios">
       <div class="main-header">
@@ -106,7 +149,15 @@
     <section class="tab-panel" id="tab-catalogo">
       <div class="main-header"><div><h1>Catálogo</h1><p>Todos os filmes e séries, direto da planilha</p></div></div>
       <div class="panel-card">
-        <div class="filter-row"><input type="text" id="catalogoFilter" placeholder="Filtrar por nome..."></div>
+        <div class="chip-row" id="catalogoTipoChips"></div>
+        <div class="filter-row" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+          <input type="text" id="catalogoFilter" placeholder="Filtrar por nome..." style="max-width:280px">
+          <select class="select-filter" id="catalogoCategoriaFilter"><option value="">Todas as categorias</option></select>
+          <select class="select-filter" id="catalogoOrdenar">
+            <option value="nome">Ordenar: A–Z</option>
+            <option value="ano">Ordenar: mais recente</option>
+          </select>
+        </div>
         <div class="table-wrap"><table class="data-table" id="catalogoTable"></table></div>
       </div>
     </section>
