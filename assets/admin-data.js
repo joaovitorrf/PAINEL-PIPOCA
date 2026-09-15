@@ -41,16 +41,18 @@ window.PipocaAdminData = (function () {
 
   function mapFilme(row) {
     return {
-      nome: row[0] || '', linkMP4: row[1] || '', capa: row[3] || '', categoria: row[4] || '',
-      ano: row[5] || '', audio: row[12] || '', playerStatus: row[15] || '',
+      nome: row[0] || '', linkMP4: row[1] || '', sinopse: row[2] || '', capa: row[3] || '',
+      categoria: row[4] || '', ano: row[5] || '', duracao: row[6] || '', audio: row[12] || '',
+      playerStatus: row[15] || '',
       player2: row[16] || '', player3: row[17] || '', player4: row[18] || '', player5: row[19] || '',
       backdrop: row[20] || '', isSerie: false
     };
   }
   function mapSerie(row) {
     return {
-      nome: row[0] || '', linkMP4: row[1] || '', capa: row[3] || '', categoria: row[4] || '',
-      ano: row[5] || '', audio: row[12] || '', backdrop: row[20] || '', isSerie: true
+      nome: row[0] || '', linkMP4: row[1] || '', sinopse: row[2] || '', capa: row[3] || '',
+      categoria: row[4] || '', ano: row[5] || '', duracao: row[6] || '', audio: row[12] || '',
+      backdrop: row[20] || '', isSerie: true
     };
   }
   function mapEpisodio(row) {
@@ -93,7 +95,7 @@ window.PipocaAdminData = (function () {
     return results.flat().map(mapEpisodio).filter(e => e.linkMP4);
   }
 
-  // Busca tudo de uma vez (filmes + séries + episódios) — usado no Dashboard/Catálogo.
+  // Busca tudo de uma vez (filmes + séries + episódios) — usado no Dashboard/Catálogo/Revisão.
   async function getCatalogoCompleto() {
     const [filmes, series, episodios] = await Promise.all([getFilmes(), getSeries(), getEpisodios()]);
     return { filmes: filmes, series: series, episodios: episodios };
@@ -123,30 +125,137 @@ window.PipocaAdminData = (function () {
     }
   }
 
-  // Verifica se um título (nome do TMDB) já existe no catálogo local (match por nome normalizado).
-  function jaExisteNoCatalogo(nomeTmdb, catalogo) {
+  /**
+   * Verifica se um título do TMDB já existe no catálogo local.
+   * ANTES: comparava por "contém" (n.includes(alvo) || alvo.includes(n)), o que
+   * dava positivo pra praticamente qualquer busca — um título curto ou uma
+   * palavra genérica batia com meio catálogo.
+   * AGORA: só considera "achou" quando o nome normalizado é EXATAMENTE igual.
+   * Se houver mais de um item com o mesmo nome (remake/homônimo) e a TMDB
+   * informar o ano, usa o ano pra desempatar.
+   */
+  function jaExisteNoCatalogo(nomeTmdb, anoTmdb, catalogo) {
     const alvo = normalizeStr(nomeTmdb);
+    if (!alvo) return null;
     const todos = catalogo.filmes.concat(catalogo.series);
-    return todos.find(function (item) {
-      const n = normalizeStr(item.nome);
-      return n === alvo || n.includes(alvo) || alvo.includes(n);
-    }) || null;
+    const exatos = todos.filter(function (item) { return normalizeStr(item.nome) === alvo; });
+    if (!exatos.length) return null;
+    if (exatos.length === 1 || !anoTmdb) return exatos[0];
+    const porAno = exatos.find(function (item) {
+      const anoItem = parseInt(item.ano, 10);
+      return anoItem && Math.abs(anoItem - anoTmdb) <= 1;
+    });
+    return porAno || exatos[0];
   }
 
-  /* ── Saúde do catálogo — problemas comuns pra revisar ── */
+  /**
+   * Sugestões "parece com..." pra quando NÃO achou exato — só informativo,
+   * nunca conta como "já está no site". Ajuda a pegar o caso de o nome no
+   * TMDB e na planilha estarem escritos de um jeito levemente diferente.
+   */
+  function sugestoesParecidas(nomeTmdb, catalogo, max) {
+    const alvo = normalizeStr(nomeTmdb);
+    if (!alvo || alvo.length < 3) return [];
+    const todos = catalogo.filmes.concat(catalogo.series);
+    return todos.filter(function (item) {
+      const n = normalizeStr(item.nome);
+      if (!n || n === alvo) return false;
+      const menor = Math.min(n.length, alvo.length), maior = Math.max(n.length, alvo.length);
+      if (menor < 4) return false; // evita bater por causa de uma palavra genérica curta
+      if (maior / menor > 1.6) return false; // tamanhos muito diferentes = pouco parecido
+      return n.includes(alvo) || alvo.includes(n);
+    }).slice(0, max || 2).map(function (item) { return item.nome; });
+  }
+
+  /* ── Saúde do catálogo — problemas categorizados e específicos pra revisar ── */
   function analisarProblemas(catalogo) {
     const problemas = [];
+    function add(tipo, nome, motivo, severidade) {
+      problemas.push({ tipo: tipo, nome: nome, motivo: motivo, severidade: severidade || 'media' });
+    }
+
+    // Nomes duplicados (mesmo nome aparece 2+ vezes na mesma aba — problema
+    // clássico de planilha, geralmente um dos dois é lixo ou está desatualizado)
+    function checarDuplicados(lista, tipo) {
+      const contagem = {};
+      lista.forEach(function (item) {
+        const n = normalizeStr(item.nome);
+        if (!n) return;
+        contagem[n] = (contagem[n] || 0) + 1;
+      });
+      lista.forEach(function (item) {
+        const n = normalizeStr(item.nome);
+        if (contagem[n] > 1) add(tipo, item.nome, 'Nome duplicado na planilha (aparece ' + contagem[n] + 'x)', 'alta');
+      });
+    }
+    checarDuplicados(catalogo.filmes, 'Filme');
+    checarDuplicados(catalogo.series, 'Série');
+
+    // Filmes
     catalogo.filmes.forEach(function (f) {
       const semLink = !f.linkMP4 && !f.player2 && !f.player3 && !f.player4 && !f.player5;
-      if (semLink) problemas.push({ nome: f.nome, tipo: 'Filme', motivo: 'Sem nenhum link de player' });
-      else if (!f.capa) problemas.push({ nome: f.nome, tipo: 'Filme', motivo: 'Sem capa' });
+      if (semLink) add('Filme', f.nome, 'Sem nenhum link de player', 'alta');
+      if (!f.capa) add('Filme', f.nome, 'Sem capa', 'media');
+      if (!f.categoria) add('Filme', f.nome, 'Sem categoria/gênero', 'baixa');
+      if (!f.ano) add('Filme', f.nome, 'Sem ano', 'baixa');
+      else if (!/^(19|20)\d{2}$/.test(String(f.ano).trim())) add('Filme', f.nome, 'Ano com valor estranho: "' + f.ano + '"', 'media');
+      if (!f.sinopse) add('Filme', f.nome, 'Sem sinopse', 'baixa');
     });
-    // Séries: considera "sem episódio" quando nenhum episódio no worker aponta pra ela
-    const seriesComEp = new Set(catalogo.episodios.map(function (e) { return normalizeStr(e.serie); }));
+
+    // Séries — cruza com a lista de episódios pra saber quais realmente têm conteúdo
+    const episodiosPorSerie = {};
+    catalogo.episodios.forEach(function (e) {
+      const n = normalizeStr(e.serie);
+      if (!episodiosPorSerie[n]) episodiosPorSerie[n] = [];
+      episodiosPorSerie[n].push(e);
+    });
+    const nomesSeriesCadastradas = new Set(catalogo.series.map(function (s) { return normalizeStr(s.nome); }));
+
     catalogo.series.forEach(function (s) {
-      if (!seriesComEp.has(normalizeStr(s.nome))) problemas.push({ nome: s.nome, tipo: 'Série', motivo: 'Nenhum episódio encontrado nas abas' });
-      else if (!s.capa) problemas.push({ nome: s.nome, tipo: 'Série', motivo: 'Sem capa' });
+      const n = normalizeStr(s.nome);
+      const eps = episodiosPorSerie[n] || [];
+      if (!eps.length) add('Série', s.nome, 'Nenhum episódio encontrado nas abas de episódios', 'alta');
+      else {
+        // Temporada+episódio duplicado dentro da mesma série
+        const vistos = {};
+        eps.forEach(function (e) {
+          const chave = e.temporada + 'x' + e.episodio;
+          vistos[chave] = (vistos[chave] || 0) + 1;
+        });
+        Object.keys(vistos).forEach(function (chave) {
+          if (vistos[chave] > 1) add('Série', s.nome, 'Episódio duplicado: T' + chave.replace('x', ' EP') + ' aparece ' + vistos[chave] + 'x', 'alta');
+        });
+        // Buraco na sequência (ex: tem 1, 2, 4 mas falta o 3) — só avisa, não é sempre erro real
+        const porTemporada = {};
+        eps.forEach(function (e) { (porTemporada[e.temporada] = porTemporada[e.temporada] || []).push(e.episodio); });
+        Object.keys(porTemporada).forEach(function (temp) {
+          const nums = porTemporada[temp].slice().sort(function (a, b) { return a - b; });
+          for (let i = 1; i < nums.length; i++) {
+            if (nums[i] - nums[i - 1] > 1) {
+              add('Série', s.nome, 'Possível episódio faltando na T' + temp + ' (pula de EP' + nums[i - 1] + ' pro EP' + nums[i] + ')', 'baixa');
+            }
+          }
+        });
+      }
+      if (!s.capa) add('Série', s.nome, 'Sem capa', 'media');
+      if (!s.categoria) add('Série', s.nome, 'Sem categoria/gênero', 'baixa');
+      if (!s.ano) add('Série', s.nome, 'Sem ano', 'baixa');
+      if (!s.sinopse) add('Série', s.nome, 'Sem sinopse', 'baixa');
     });
+
+    // Episódios órfãos — apontam pra uma série que não existe (ou está com nome
+    // digitado diferente) na aba de séries. Normalmente é erro de digitação.
+    const jaAvisadoOrfao = new Set();
+    catalogo.episodios.forEach(function (e) {
+      const n = normalizeStr(e.serie);
+      if (!nomesSeriesCadastradas.has(n) && !jaAvisadoOrfao.has(n)) {
+        jaAvisadoOrfao.add(n);
+        add('Episódio', e.serie || '(nome vazio)', 'Aponta pra uma série que não está cadastrada na aba de séries (confira o nome digitado)', 'alta');
+      }
+    });
+
+    const ordemSeveridade = { alta: 0, media: 1, baixa: 2 };
+    problemas.sort(function (a, b) { return ordemSeveridade[a.severidade] - ordemSeveridade[b.severidade]; });
     return problemas;
   }
 
@@ -176,7 +285,8 @@ window.PipocaAdminData = (function () {
   return {
     getFilmes: getFilmes, getSeries: getSeries, getEpisodios: getEpisodios,
     getCatalogoCompleto: getCatalogoCompleto, buscarTMDB: buscarTMDB,
-    jaExisteNoCatalogo: jaExisteNoCatalogo, analisarProblemas: analisarProblemas,
+    jaExisteNoCatalogo: jaExisteNoCatalogo, sugestoesParecidas: sugestoesParecidas,
+    analisarProblemas: analisarProblemas,
     contarPorCategoria: contarPorCategoria, contarAudio: contarAudio,
     normalizeStr: normalizeStr, TMDB_IMG_BASE: 'https://image.tmdb.org/t/p/w300'
   };

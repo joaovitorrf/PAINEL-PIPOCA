@@ -236,3 +236,76 @@ input, select { font-family: inherit; }
   color: var(--gold); white-space: pre-wrap; overflow-x: auto;
 }
 .empty-hint { color: var(--text-3); font-size: 0.82rem; text-align: center; padding: 2rem 0; }
+
+/* ═══ FILTROS/CHIPS (Revisão, Catálogo) ═══ */
+.chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1.25rem; }
+.chip {
+  background: var(--card); border: 1px solid var(--border-light); color: var(--text-2);
+  padding: 7px 14px; border-radius: var(--r-pill); font-size: 0.8rem; font-weight: 600;
+  cursor: pointer; transition: all var(--t-fast); display: inline-flex; align-items: center; gap: 6px;
+}
+.chip:hover { background: var(--card-hover); color: var(--text-1); }
+.chip.active { background: var(--red-soft); border-color: var(--red); color: var(--red); }
+.chip .chip-count { background: rgba(255,255,255,0.1); padding: 1px 7px; border-radius: var(--r-pill); font-size: 0.7rem; }
+.chip.active .chip-count { background: rgba(255,45,67,0.2); }
+.select-filter {
+  background: var(--card); border: 1px solid var(--border-light); color: var(--text-1);
+  padding: 9px 14px; border-radius: var(--r-pill); font-size: 0.82rem; outline: none;
+}
+
+/* ═══ SEVERIDADE (Revisão) ═══ */
+.sev-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; display: inline-block; }
+.sev-dot.alta { background: var(--red); box-shadow: 0 0 6px var(--red-glow); }
+.sev-dot.media { background: var(--gold); box-shadow: 0 0 6px var(--gold-soft); }
+.sev-dot.baixa { background: var(--text-3); }
+.revisao-row {
+  display: flex; align-items: center; gap: 12px; padding: 12px;
+  background: var(--card); border-radius: var(--r-sm); margin-bottom: 8px;
+}
+.revisao-row .revisao-tipo {
+  flex-shrink: 0; font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+  color: var(--text-3); background: var(--surface); padding: 3px 8px; border-radius: 5px; width: 62px; text-align: center;
+}
+.revisao-row .revisao-nome { flex: 1; min-width: 0; color: var(--text-1); font-weight: 600; font-size: 0.86rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.revisao-row .revisao-motivo { color: var(--text-3); font-size: 0.78rem; flex-shrink: 0; max-width: 320px; text-align: right; }
+
+/* ═══ USUÁRIOS / REPORTES (cards) ═══ */
+.user-row { display: flex; align-items: center; gap: 12px; }
+.user-row img { width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; background: var(--surface); }
+.user-row-info { min-width: 0; }
+.user-row-name { color: var(--text-1); font-weight: 600; font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.user-row-email { color: var(--text-3); font-size: 0.74rem; }
+
+.report-card {
+  background: var(--card); border-radius: var(--r-sm); padding: 14px; margin-bottom: 10px;
+  border-left: 3px solid var(--gold);
+}
+.report-card.resolvido { border-left-color: var(--green); opacity: 0.6; }
+.report-card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 6px; }
+.report-card-title { color: var(--text-1); font-weight: 700; font-size: 0.88rem; }
+.report-card-cat { color: var(--gold); font-size: 0.74rem; font-weight: 600; margin-top: 2px; }
+.report-card-msg { color: var(--text-2); font-size: 0.82rem; margin: 8px 0; line-height: 1.5; }
+.report-card-meta { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 0.72rem; color: var(--text-3); }
+.btn-resolve {
+  background: var(--green-soft); color: var(--green); border: 1px solid rgba(46,204,113,0.3);
+  padding: 5px 12px; border-radius: var(--r-pill); font-size: 0.72rem; font-weight: 700; flex-shrink: 0;
+  transition: all var(--t-fast);
+}
+.btn-resolve:hover { background: rgba(46,204,113,0.25); }
+.btn-resolve.is-done { background: var(--card-hover); color: var(--text-3); border-color: var(--border-light); }
+
+/* ═══ CATÁLOGO redesenhado (com miniatura) ═══ */
+.catalogo-row-thumb { display: flex; align-items: center; gap: 12px; }
+.catalogo-row-thumb img {
+  width: 42px; height: 60px; object-fit: cover; border-radius: 5px; flex-shrink: 0; background: var(--surface);
+}
+.catalogo-row-thumb .catalogo-nome-col { min-width: 0; }
+.catalogo-row-thumb .catalogo-nome { color: var(--text-1); font-weight: 700; font-size: 0.86rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 260px; }
+.catalogo-row-thumb .catalogo-sub { color: var(--text-3); font-size: 0.74rem; margin-top: 2px; }
+.sort-btn {
+  background: none; border: none; color: inherit; font: inherit; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 4px; padding: 0;
+}
+.sort-btn svg { width: 11px; height: 11px; opacity: 0.5; }
+.sort-btn.active svg { opacity: 1; color: var(--red); }
+
